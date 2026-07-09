@@ -70,8 +70,14 @@ function App() {
 
   useEffect(() => {
     const syncTheme = () => {
-      document.documentElement.classList.add('dark');
-      document.body.style.backgroundColor = '#000000';
+      const theme = localStorage.getItem('theme');
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.body.style.backgroundColor = '#000000';
+      } else {
+        document.documentElement.classList.remove('dark');
+        document.body.style.backgroundColor = '#f8fafc';
+      }
     };
 
     syncTheme();

@@ -35,24 +35,18 @@ function MainLayout() {
 }
 
 function App() {
-  useEffect(() => {
-    const syncTheme = () => {
-      const theme = localStorage.getItem('theme');
-      if (theme === 'dark') {
-        document.documentElement.classList.add('dark');
-        document.body.style.backgroundColor = '#000000';
-      } else {
-        document.documentElement.classList.remove('dark');
-        document.body.style.backgroundColor = '#f8fafc';
-      }
-    };
+  const [loadingScreen, setLoadingScreen] = useState(true);
 
-    syncTheme();
-    window.addEventListener('storage', syncTheme);
-    return () => window.removeEventListener('storage', syncTheme);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoadingScreen(false);
+    }, 1800);
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
+    if (loadingScreen) return;
+
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -61,19 +55,52 @@ function App() {
       });
     }, {
       threshold: 0.05,
-      rootMargin: '0px 0px -45px 0px'
+      rootMargin: '0px 0px -40px 0px'
     });
 
-    const revealElements = document.querySelectorAll('.reveal-land');
+    const revealElements = document.querySelectorAll(
+      '.reveal-fade-up, .reveal-fade-left, .reveal-fade-right, .reveal-scale-in'
+    );
     revealElements.forEach(el => observer.observe(el));
 
     return () => {
       revealElements.forEach(el => observer.unobserve(el));
     };
+  }, [loadingScreen]);
+
+  useEffect(() => {
+    const syncTheme = () => {
+      document.documentElement.classList.add('dark');
+      document.body.style.backgroundColor = '#000000';
+    };
+
+    syncTheme();
+    window.addEventListener('storage', syncTheme);
+    return () => window.removeEventListener('storage', syncTheme);
   }, []);
 
   return (
-    <Router>
+    <>
+      {loadingScreen && (
+        <div 
+          className="fixed inset-0 z-55 bg-[#000000] flex flex-col items-center justify-center"
+          style={{
+            animation: 'fadeOut 0.4s cubic-bezier(0.16, 1, 0.3, 1) 1.5s forwards'
+          }}
+        >
+          <div className="flex flex-col items-center gap-4 animate-logo-scale">
+            <div className="bg-white text-black p-5 rounded-3xl shadow-[0_0_50px_rgba(255,255,255,0.15)] flex items-center justify-center">
+              <svg className="w-16 h-16 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+              </svg>
+            </div>
+            <h1 className="text-white text-2xl font-heading font-black tracking-widest uppercase mt-4">HyperLocal</h1>
+          </div>
+        </div>
+      )}
+      
+      <Router>
 
       <Routes>
         {/* Dashboard: full-screen layout, no Navbar/Footer */}
@@ -100,6 +127,7 @@ function App() {
         </Route>
       </Routes>
     </Router>
+    </>
   );
 }
 

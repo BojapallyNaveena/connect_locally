@@ -40,7 +40,7 @@ export default function Landing() {
           {/* Two Main Options */}
           <div className="flex flex-col lg:flex-row gap-8 justify-center max-w-5xl mx-auto">
             {/* Find Work Card */}
-            <div className="flex-1 bg-white rounded-3xl p-8 shadow-xl shadow-slate-200/50 border border-slate-100 hover:shadow-2xl hover:shadow-violet-200/30 transition-all duration-300 group">
+            <div className="flex-1 bg-white rounded-3xl p-8 shadow-xl shadow-slate-200/50 border border-slate-100 hover:shadow-2xl hover:shadow-violet-200/30 transition-all duration-300 group reveal-land delay-100">
               <div className="text-center mb-6">
                 <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg group-hover:scale-110 transition-transform">
                   <Search className="text-white" size={32} />
@@ -49,7 +49,7 @@ export default function Landing() {
                 <p className="text-slate-600">Discover local opportunities that match your skills</p>
               </div>
 
-              <div className="space-y-4 mb-8">
+              <div className="space-y-4 mb-8 text-left">
                 <div className="flex items-center gap-3 text-sm text-slate-600">
                   <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                   <span>Browse jobs within 15km</span>
@@ -74,7 +74,7 @@ export default function Landing() {
             </div>
 
             {/* Hire Help Card */}
-            <div className="flex-1 bg-white rounded-3xl p-8 shadow-xl shadow-slate-200/50 border border-slate-100 hover:shadow-2xl hover:shadow-fuchsia-200/30 transition-all duration-300 group">
+            <div className="flex-1 bg-white rounded-3xl p-8 shadow-xl shadow-slate-200/50 border border-slate-100 hover:shadow-2xl hover:shadow-fuchsia-200/30 transition-all duration-300 group reveal-land delay-200">
               <div className="text-center mb-6">
                 <div className="w-20 h-20 bg-gradient-to-br from-fuchsia-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg group-hover:scale-110 transition-transform">
                   <Building className="text-white" size={32} />
@@ -83,7 +83,7 @@ export default function Landing() {
                 <p className="text-slate-600">Find skilled local workers for your projects</p>
               </div>
 
-              <div className="space-y-4 mb-8">
+              <div className="space-y-4 mb-8 text-left">
                 <div className="flex items-center gap-3 text-sm text-slate-600">
                   <div className="w-2 h-2 bg-fuchsia-500 rounded-full"></div>
                   <span>Post jobs instantly</span>
@@ -143,7 +143,7 @@ export default function Landing() {
                 color: "from-fuchsia-500 to-pink-500"
               }
             ].map((feature, idx) => (
-              <div key={idx} className="group bg-slate-50 rounded-3xl p-8 hover:-translate-y-2 transition-all duration-300 border border-slate-100 hover:shadow-xl hover:shadow-slate-200/50">
+              <div key={idx} className={`group bg-slate-50 rounded-3xl p-8 hover:-translate-y-2 transition-all duration-300 border border-slate-100 hover:shadow-xl hover:shadow-slate-200/50 reveal-land ${idx === 0 ? 'delay-100' : idx === 1 ? 'delay-200' : 'delay-300'}`}>
                 <div className={`w-16 h-16 bg-gradient-to-br ${feature.color} rounded-2xl flex items-center justify-center shadow-lg mb-6 text-white group-hover:scale-110 transition-transform`}>
                   <feature.icon size={32} strokeWidth={2} />
                 </div>
@@ -165,7 +165,7 @@ export default function Landing() {
               { number: "4.8", label: "Avg Rating", icon: Star },
               { number: "15km", label: "Service Radius" }
             ].map((stat, idx) => (
-              <div key={idx} className="bg-white rounded-2xl p-6 hover:shadow-lg transition-shadow">
+              <div key={idx} className={`bg-white rounded-2xl p-6 hover:shadow-lg transition-shadow reveal-land ${idx === 0 ? 'delay-100' : idx === 1 ? 'delay-200' : idx === 2 ? 'delay-300' : 'delay-400'}`}>
                 <div className="text-3xl font-bold text-slate-900 mb-2 flex items-center justify-center gap-1">
                   {stat.number}
                   {stat.icon && <stat.icon className="text-amber-500" size={24} />}

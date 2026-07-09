@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import API_URL from '../utils/api';
 import { 
   Users, Briefcase, ShieldAlert, BarChart3, TrendingUp, Search, 
   Filter, MoreVertical, Trash2, CheckCircle, XCircle, Settings, LogOut, LayoutDashboard
@@ -22,14 +23,14 @@ export default function Admin() {
 
   const fetchAdminData = async () => {
     try {
-      const profile = await axios.get('http://localhost:5000/api/auth/profile', { headers: { Authorization: `Bearer ${token}` } });
+      const profile = await axios.get(`${API_URL}/api/auth/profile`, { headers: { Authorization: `Bearer ${token}` } });
       if (profile.data.role !== 'admin' && profile.data.role !== 'employer') { // Temporary allowance for demo
         // navigate('/dashboard'); 
       }
       
       const [usersRes, jobsRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/auth/profile', { headers: { Authorization: `Bearer ${token}` } }).then(r => [r.data]), // Mocking list for now
-        axios.get('http://localhost:5000/api/jobs')
+        axios.get(`${API_URL}/api/auth/profile`, { headers: { Authorization: `Bearer ${token}` } }).then(r => [r.data]), // Mocking list for now
+        axios.get(`${API_URL}/api/jobs`)
       ]);
       
       setUsers(usersRes);
@@ -44,7 +45,7 @@ export default function Admin() {
   const handleDeleteJob = async (id) => {
     if (!window.confirm('Delete this job?')) return;
     try {
-      await axios.delete(`http://localhost:5000/api/jobs/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.delete(`${API_URL}/api/jobs/${id}`, { headers: { Authorization: `Bearer ${token}` } });
       setJobs(jobs.filter(j => j.id !== id));
     } catch (err) {
       alert('Delete failed');

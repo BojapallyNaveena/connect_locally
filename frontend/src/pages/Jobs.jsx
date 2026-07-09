@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { MapPin, IndianRupee, Search, SlidersHorizontal, X, Star, Clock, Briefcase, ChevronRight, Filter, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import API_URL from '../utils/api';
 
 const CATEGORIES = ['All', 'Delivery', 'Event Support', 'Poster Design', 'Tutoring', 'Data Entry', 'Photography', 'Cleaning', 'Marketing', 'Home Services', 'Other'];
 const URGENCY_COLORS = { High: 'bg-red-100 text-red-700', Medium: 'bg-amber-100 text-amber-700', Low: 'bg-green-100 text-green-700' };
@@ -49,7 +50,7 @@ export default function Jobs() {
 
   const fetchJobs = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/jobs');
+      const res = await axios.get(`${API_URL}/api/jobs`);
       const jobsData = Array.isArray(res.data) ? res.data : [];
       setJobs(jobsData);
       setFilteredJobs(jobsData);
@@ -71,7 +72,7 @@ export default function Jobs() {
     setVerifying(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:5000/api/auth/send-otp', { type: verifyType }, { 
+      await axios.post(`${API_URL}/api/auth/send-otp`, { type: verifyType }, { 
         headers: { Authorization: `Bearer ${token}` } 
       });
       setVerifyStep(2);
@@ -86,7 +87,7 @@ export default function Jobs() {
     setVerifying(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:5000/api/auth/verify-otp', { otp, type: verifyType }, { 
+      await axios.post(`${API_URL}/api/auth/verify-otp`, { otp, type: verifyType }, { 
         headers: { Authorization: `Bearer ${token}` } 
       });
       alert(`${verifyType.toUpperCase()} Verified!`);
@@ -107,7 +108,7 @@ export default function Jobs() {
     setApplying(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:5000/api/applications', { 
+      await axios.post(`${API_URL}/api/applications`, { 
         jobId: selectedJob.id,
         experience: applyData.experience,
         phoneNumber: applyData.phoneNumber,

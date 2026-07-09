@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import API_URL from '../utils/api';
 import { MapPin, Briefcase, IndianRupee, AlignLeft, AlertCircle } from 'lucide-react';
 
 export default function PostJob() {
@@ -52,7 +53,7 @@ export default function PostJob() {
         }
       };
 
-      await axios.post('http://localhost:5000/api/jobs', payload, {
+      await axios.post(`${API_URL}/api/jobs`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
       navigate('/jobs');

@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 import axios from 'axios';
+import API_URL from '../utils/api';
 import { Send, User, Search, Phone, Video, Info, MoreVertical, MessageSquare, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-const socket = io('http://localhost:5000');
+const socket = io(API_URL);
 
 export default function Chat() {
   const navigate = useNavigate();
@@ -29,19 +30,19 @@ export default function Chat() {
 
   const fetchProfileAndConversations = async (autoSelectId) => {
     try {
-      const profileRes = await axios.get('http://localhost:5000/api/auth/profile', {
+      const profileRes = await axios.get(`${API_URL}/api/auth/profile`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUser(profileRes.data);
       socket.emit('join_chat', profileRes.data.id);
       
-      const convRes = await axios.get('http://localhost:5000/api/messages/conversations', {
+      const convRes = await axios.get(`${API_URL}/api/messages/conversations`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setConversations(convRes.data);
 
       if (autoSelectId) {
-        const otherUser = await axios.get(`http://localhost:5000/api/auth/profile/${autoSelectId}`, {
+        const otherUser = await axios.get(`${API_URL}/api/auth/profile/${autoSelectId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         selectChat(otherUser.data);
@@ -84,7 +85,7 @@ export default function Chat() {
     setActiveChat(otherUser);
     setMobileView('chat');
     try {
-      const res = await axios.get(`http://localhost:5000/api/messages/${otherUser.id}`, {
+      const res = await axios.get(`${API_URL}/api/messages/${otherUser.id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setMessages(res.data);
@@ -104,7 +105,7 @@ export default function Chat() {
     setMessages(prev => [...prev, { SenderId: user.id, message, createdAt: new Date() }]);
     setMessage('');
     try {
-      await axios.post('http://localhost:5000/api/messages', data, {
+      await axios.post(`${API_URL}/api/messages`, data, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchProfileAndConversations();

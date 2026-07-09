@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import API_URL from '../utils/api';
 import { IndianRupee } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 
@@ -20,7 +21,7 @@ export default function Payments() {
     const token = localStorage.getItem('token');
 
     try {
-      const res = await axios.post('http://localhost:5000/api/payments/orders', { amount }, {
+      const res = await axios.post(`${API_URL}/api/payments/orders`, { amount }, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -44,7 +45,7 @@ export default function Payments() {
 
     try {
       // Simulate backend verification
-      await axios.post('http://localhost:5000/api/payments/verify', {
+      await axios.post(`${API_URL}/api/payments/verify`, {
         razorpay_order_id: orderDetails.id,
         razorpay_payment_id: 'pay_mock_' + Date.now(),
         razorpay_signature: 'mock_signature',

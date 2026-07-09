@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { MapPin, Mail, Lock, User, Briefcase, Building, ArrowRight } from 'lucide-react';
 import axios from 'axios';
+import API_URL from '../utils/api';
 
 export default function Register() {
   const [role, setRole] = useState('worker'); // student, worker, employer, ngo
@@ -23,7 +24,7 @@ export default function Register() {
     setError('');
     setLoading(true);
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/register', { ...formData, role });
+      const res = await axios.post(`${API_URL}/api/auth/register`, { ...formData, role });
       localStorage.setItem('token', res.data.token);
       navigate('/dashboard');
     } catch (err) {

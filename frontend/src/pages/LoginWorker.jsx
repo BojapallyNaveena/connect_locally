@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, ArrowRight, Search } from 'lucide-react';
 import axios from 'axios';
+import API_URL from '../utils/api';
 
 export default function LoginWorker() {
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -14,7 +15,7 @@ export default function LoginWorker() {
     setError('');
     setLoading(true);
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/login', formData);
+      const res = await axios.post(`${API_URL}/api/auth/login`, formData);
       localStorage.setItem('token', res.data.token);
       window.location.href = '/dashboard';
     } catch (err) {

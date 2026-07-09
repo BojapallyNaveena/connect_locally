@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Send, Sparkles, Search, MapPin, IndianRupee, Zap, BookOpen, Loader, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import API_URL from '../utils/api';
 
 const SUGGESTION_CHIPS = [
   '🛵 Delivery jobs near me',
@@ -49,7 +50,7 @@ export default function AIAssistant() {
   }, [messages]);
 
   useEffect(() => {
-    axios.get('http://localhost:5000/api/rag/status')
+    axios.get(`${API_URL}/api/rag/status`)
       .then(res => {
         setIndexStatus(res.data);
         setApiKeyConfigured(true);
@@ -75,7 +76,7 @@ export default function AIAssistant() {
     setLoading(true);
 
     try {
-      const res = await axios.post('http://localhost:5000/api/rag/chat', { query }, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await axios.post(`${API_URL}/api/rag/chat`, { query }, { headers: { Authorization: `Bearer ${token}` } });
       setMessages(prev => [...prev, { role: 'ai', content: res.data.answer, sources: res.data.sources || [] }]);
     } catch (err) {
       setMessages(prev => [...prev, { role: 'ai', content: '🤖 Demo Mode: Semantic search requires a Gemini API key. Try asking about "delivery" or "tutor" to see example matches.', sources: [] }]);

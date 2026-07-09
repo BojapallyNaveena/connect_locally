@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { MapPin, Mail, Lock, ArrowRight } from 'lucide-react';
 import axios from 'axios';
+import API_URL from '../utils/api';
 
 export default function Login() {
   const [formData, setFormData] = useState({
@@ -21,7 +22,7 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/login', formData);
+      const res = await axios.post(`${API_URL}/api/auth/login`, formData);
       localStorage.setItem('token', res.data.token);
       const role = res.data.user.role;
       if (role === 'employer') {

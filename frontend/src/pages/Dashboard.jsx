@@ -6,6 +6,7 @@ import {
   IndianRupee, ChevronRight, Search, Sun, Moon, ShieldAlert, BarChart3, TrendingUp, AlertTriangle, Menu, X, User
 } from 'lucide-react';
 import axios from 'axios';
+import API_URL from '../utils/api';
 import { translations } from '../utils/translations';
 
 const CATEGORY_ICONS = { Delivery: '🛵', 'Event Support': '🎪', 'Poster Design': '🎨', Tutoring: '📚', 'Data Entry': '💻', Photography: '📷', Cleaning: '🧹', Marketing: '📢', 'Home Services': '🏠', Other: '📌' };
@@ -71,12 +72,12 @@ export default function Dashboard() {
   const fetchData = async () => {
     try {
       const [profileRes, appsRes, jobsRes, payRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/auth/profile', { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get('http://localhost:5000/api/applications/me', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: [] })),
-        axios.get('http://localhost:5000/api/jobs?status=Open', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: [] })),
-        axios.get('http://localhost:5000/api/payments/history', { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: [] })),
+        axios.get(`${API_URL}/api/auth/profile`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API_URL}/api/applications/me`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: [] })),
+        axios.get(`${API_URL}/api/jobs?status=Open`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: [] })),
+        axios.get(`${API_URL}/api/payments/history`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: [] })),
       ]);
-      const jobsResAll = await axios.get(`http://localhost:5000/api/jobs?postedBy=${profileRes.data.id}`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: [] }));
+      const jobsResAll = await axios.get(`${API_URL}/api/jobs?postedBy=${profileRes.data.id}`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: [] }));
       
       setUser(profileRes.data);
       setApplications(appsRes.data);
@@ -107,7 +108,7 @@ export default function Dashboard() {
         address: postJobData.address,
         location: { coordinates: [parseFloat(postJobData.lng), parseFloat(postJobData.lat)] }
       };
-      await axios.post('http://localhost:5000/api/jobs', payload, {
+      await axios.post(`${API_URL}/api/jobs`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert('Job posted successfully!');
@@ -126,7 +127,7 @@ export default function Dashboard() {
 
   const handleHire = async (appId, status) => {
     try {
-      await axios.put('http://localhost:5000/api/applications/status-update', { applicationId: appId, status: status }, {
+      await axios.put(`${API_URL}/api/applications/status-update`, { applicationId: appId, status: status }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert(`Worker ${status === 'Approved' ? 'Approved' : 'Rejected'} Successfully!`);
@@ -376,7 +377,7 @@ export default function Dashboard() {
                                     const reader = new FileReader();
                                     reader.onloadend = async () => {
                                       try {
-                                        await axios.put('http://localhost:5000/api/applications/submit-work', { applicationId: app.id, file: reader.result }, {
+                                        await axios.put(`${API_URL}/api/applications/submit-work`, { applicationId: app.id, file: reader.result }, {
                                           headers: { Authorization: `Bearer ${token}` }
                                         });
                                         alert("Work submitted successfully!");

@@ -6,15 +6,15 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const SYSTEM_PROMPT = `You are a smart hyperlocal job assistant for HyperLocal Connect — a platform that connects local workers with job opportunities and helps find skilled people.
 
-You ONLY answer using the provided job and user context from the database. If the context is insufficient or no matches, say so honestly.
+Your instructions are:
+1. Prioritize answering the user's query directly and accurately.
+2. If the user query is about finding jobs, workers, or service categories, search through the provided database context below and present the best matches clearly.
+3. If the user asks a general question, platform support question (e.g. how to apply, how payments work, how to post a job, how to verify Aadhar), or general knowledge question, answer it directly and correctly using your general knowledge. Do not say "insufficient context" for general questions; answer them naturally and align your response with the platform's features (e.g. mentioning the Jobs page, Payments tab, Profile verification page, or Emergency Hub).
 
-When answering:
+When listing jobs/users:
 - Be conversational and helpful
-- For job queries: Highlight the most relevant jobs first, mention key details like pay, location, urgency
-- For user queries: Highlight relevant users with their skills, ratings, and availability
-- Format responses clearly with titles bolded
-- If the user asks about location, highlight addresses
-- If asking about pay, compare amounts across options
+- Highlight key details like pay, location, urgency
+- Format responses clearly with bolding
 - Always end with an encouraging call-to-action`;
 
 /**
@@ -26,6 +26,73 @@ When answering:
  * 5. Return AI response + raw matches
  */
 export const queryRAG = async (userQuery) => {
+  const queryClean = userQuery.trim().toLowerCase();
+  
+  // List of patterns that indicate conversational, greeting, gratitude, or identity queries
+  const conversationalPatterns = [
+    /\b(hi|hello|hey|yo|greetings|good\s*morning|good\s*afternoon|good\s*evening)\b/i,
+    /\b(thanks|thank\s*you|thankyou)\b/i,
+    /\b(bye|goodbye|see\s*you)\b/i,
+    /\b(who\s*are\s*you|what\s*is\s*your\s*name|your\s*name|about\s*yourself|about\s*you|tell\s*me\s*about\s*you|tell\s*about\s*yourself|who\s*are\s*u|who\s*r\s*u)\b/i,
+    /\b(how\s*are\s*you|how\s*is\s*it\s*going|how's\s*it\s*going|whats\s*up|what's\s*up|how\s*do\s*you\s*do|how\s*are\s*you\s*doing)\b/i,
+    /\b(ok|okay|cool|fine|nice|great|awesome|sure|good|perfect|yes|no|yeah|yep|nope)\b/i,
+    /\b(yourself|you)\b/i
+  ];
+
+  // Strong keywords that indicate a job/worker search query
+  const searchKeywords = ['job', 'work', 'hire', 'post', 'find', 'search', 'apply', 'delivery', 'tutor', 'clean', 'plumb', 'electric', 'driver', 'cook', 'maid', 'helper', 'ngo', 'opportunity', 'skills', 'coordinates', 'address', 'payment', 'money', 'rupees'];
+
+  const matchesConversational = conversationalPatterns.some(pattern => pattern.test(queryClean));
+  const hasSearchKeyword = searchKeywords.some(keyword => queryClean.includes(keyword));
+
+  // It is conversational if it matches a conversational pattern and does not contain job search terms
+  const isConversational = matchesConversational && !hasSearchKeyword;
+  
+  if (isConversational) {
+    const prompt = `You are a friendly hyperlocal job assistant for HyperLocal Connect.
+The user said: "${userQuery}"
+Provide a warm, polite, and brief response (e.g., greeting them back, saying "my pleasure!" / "you're welcome!", explaining how you can help them find local jobs or hire workers). Do not list or reference any jobs or database results.`;
+
+    const MODELS_TO_TRY = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-pro'];
+    let answer = '';
+
+    if (process.env.GEMINI_API_KEY) {
+      for (const modelName of MODELS_TO_TRY) {
+        try {
+          const model = genAI.getGenerativeModel({ model: modelName });
+          const result = await model.generateContent(prompt);
+          answer = result.response.text();
+          break;
+        } catch (llmErr) {
+          console.error(`[RAG] Conversational Model ${modelName} failed:`, llmErr.message);
+        }
+      }
+    }
+
+    if (!answer) {
+      if (/thank/i.test(queryClean)) {
+        answer = "My pleasure! Let me know if you need help finding jobs or posting a new opportunity. 😊";
+      } else if (/bye/i.test(queryClean)) {
+        answer = "Goodbye! Have a great day ahead. Feel free to return whenever you need to find local help or work. 👋";
+      } else if (/who/i.test(queryClean) || /name/i.test(queryClean) || /yourself/i.test(queryClean) || /about\s*you/i.test(queryClean)) {
+        answer = "I am the HyperLocal Connect AI Assistant. I'm here to help you search for jobs and find skilled workers in your local community! 🤖";
+      } else if (/how\s*are\s*you/i.test(queryClean) || /how\s*is\s*it/i.test(queryClean) || /how's\s*it/i.test(queryClean) || /what\s*'s\s*up/i.test(queryClean) || /whats\s*up/i.test(queryClean) || /how\s*do\s*you\s*do/i.test(queryClean)) {
+        answer = "I'm doing great, thank you for asking! 😊 I'm ready to help you find jobs or local professionals. What can I do for you today?";
+      } else if (/\b(ok|okay|cool|fine|nice|great|awesome|sure|good|perfect|yes|no|yeah|yep|nope)\b/i.test(queryClean)) {
+        answer = "Awesome! Let me know if you want to search for a specific job (like 'delivery' or 'tutor') or find local professionals. 👍";
+      } else {
+        answer = "Hello! 👋 How can I help you today? You can ask me to find specific jobs (like 'Tutoring' or 'Delivery'), or find workers with specific skills near you.";
+      }
+    }
+
+    return {
+      answer,
+      sources: [],
+      totalIndexed: indexSize(),
+      queryProcessed: userQuery
+    };
+  }
+
   const totalIndexed = indexSize();
 
   if (totalIndexed === 0) {
@@ -41,7 +108,17 @@ export const queryRAG = async (userQuery) => {
   try {
     queryEmbedding = await generateEmbedding(userQuery);
   } catch (err) {
-    throw new Error(`Embedding failed: ${err.message}. Check your GEMINI_API_KEY.`);
+    console.error('[RAG] Embedding failed, returning API key notice:', err.message);
+    return {
+      answer: `🤖 **HyperLocal Assistant**
+
+I couldn't process your request: **"${userQuery}"**.
+
+💡 *Tip: This query requires an AI model connection. Please configure a valid \`GEMINI_API_KEY\` in your backend \`.env\` file to enable semantic searches and general question-answering!*`,
+      sources: [],
+      totalIndexed,
+      queryProcessed: userQuery
+    };
   }
 
   // Step 2: Vector search — find top-K similar jobs
@@ -130,37 +207,46 @@ Please provide:
   if (!answer) {
     // Fallback: Format results directly without LLM
     console.log('[RAG] Using fallback formatter (no LLM)');
-    const jobMatches = topMatches.filter(m => m.metadata.type === 'job');
-    const userMatches = topMatches.filter(m => m.metadata.type === 'user');
+    const bestScore = topMatches[0]?.score || 0;
 
-    let fallback = `🔍 **Search Results for: "${userQuery}"**\n\n`;
+    if (bestScore < 0.35) {
+      let fallback = `🤖 **HyperLocal Assistant**\n\n`;
+      fallback += `I couldn't find any jobs or workers matching your query: **"${userQuery}"**.\n\n`;
+      fallback += `💡 *Tip: If you are asking a general question (e.g., platform help, account questions), please configure a valid \`GEMINI_API_KEY\` in the backend \`.env\` file. This will enable me to answer all your general questions directly!*`;
+      answer = fallback;
+    } else {
+      const jobMatches = topMatches.filter(m => m.metadata.type === 'job');
+      const userMatches = topMatches.filter(m => m.metadata.type === 'user');
 
-    if (jobMatches.length > 0) {
-      fallback += `**📋 Matching Jobs (${jobMatches.length} found):**\n\n`;
-      jobMatches.slice(0, 5).forEach((m, i) => {
-        const j = m.metadata;
-        fallback += `**${i + 1}. ${j.title}**\n`;
-        fallback += `📍 ${j.address}\n`;
-        fallback += `💰 ₹${j.paymentAmount} (${j.paymentMode}) · ⚡ ${j.urgency} urgency\n`;
-        fallback += `🏷️ ${j.category} · Posted by ${j.postedBy}\n`;
-        if (j.description) fallback += `📝 ${j.description}\n`;
-        fallback += `\n`;
-      });
+      let fallback = `🔍 **Search Results for: "${userQuery}"**\n\n`;
+
+      if (jobMatches.length > 0) {
+        fallback += `**📋 Matching Jobs (${jobMatches.length} found):**\n\n`;
+        jobMatches.slice(0, 5).forEach((m, i) => {
+          const j = m.metadata;
+          fallback += `**${i + 1}. ${j.title}**\n`;
+          fallback += `📍 ${j.address}\n`;
+          fallback += `💰 ₹${j.paymentAmount} (${j.paymentMode}) · ⚡ ${j.urgency} urgency\n`;
+          fallback += `🏷️ ${j.category} · Posted by ${j.postedBy}\n`;
+          if (j.description) fallback += `📝 ${j.description}\n`;
+          fallback += `\n`;
+        });
+      }
+
+      if (userMatches.length > 0) {
+        fallback += `**👥 Matching Workers (${userMatches.length} found):**\n\n`;
+        userMatches.slice(0, 3).forEach((m, i) => {
+          const u = m.metadata;
+          fallback += `**${i + 1}. ${u.name}** (${u.role})\n`;
+          fallback += `⭐ ${u.rating} rating · ${u.availability ? '✅ Available' : '❌ Busy'}\n`;
+          if (u.skills) fallback += `🛠️ Skills: ${Array.isArray(u.skills) ? u.skills.join(', ') : u.skills}\n`;
+          fallback += `\n`;
+        });
+      }
+
+      fallback += `👉 Go to the **Jobs page** to apply or post a job!`;
+      answer = fallback;
     }
-
-    if (userMatches.length > 0) {
-      fallback += `**👥 Matching Workers (${userMatches.length} found):**\n\n`;
-      userMatches.slice(0, 3).forEach((m, i) => {
-        const u = m.metadata;
-        fallback += `**${i + 1}. ${u.name}** (${u.role})\n`;
-        fallback += `⭐ ${u.rating} rating · ${u.availability ? '✅ Available' : '❌ Busy'}\n`;
-        if (u.skills) fallback += `🛠️ Skills: ${Array.isArray(u.skills) ? u.skills.join(', ') : u.skills}\n`;
-        fallback += `\n`;
-      });
-    }
-
-    fallback += `👉 Go to the **Jobs page** to apply or post a job!`;
-    answer = fallback;
   }
 
   return {

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import API_URL from '../utils/api';
 import { User, Mail, MapPin, Briefcase, Star, Clock, ShieldCheck, Camera, Edit3, Save, X, Phone, BadgeCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -21,7 +22,7 @@ export default function Profile() {
         const base64 = reader.result;
         setProfileImage(base64);
         try {
-          await axios.put('http://localhost:5000/api/auth/profile', { profileImage: base64 }, {
+          await axios.put(`${API_URL}/api/auth/profile`, { profileImage: base64 }, {
             headers: { Authorization: `Bearer ${token}` }
           });
         } catch (err) {
@@ -39,7 +40,7 @@ export default function Profile() {
 
   const fetchProfile = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/auth/profile', {
+      const res = await axios.get(`${API_URL}/api/auth/profile`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUser(res.data);
@@ -62,7 +63,7 @@ export default function Profile() {
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
-      await axios.put('http://localhost:5000/api/auth/profile', { ...formData, profileImage }, {
+      await axios.put(`${API_URL}/api/auth/profile`, { ...formData, profileImage }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setIsEditing(false);
@@ -85,7 +86,7 @@ export default function Profile() {
     if (verifyType === 'aadhar' && aadharNum.length !== 12) return alert("Please enter a valid 12-digit Aadhaar Number");
     setVerifying(true);
     try {
-      await axios.post('http://localhost:5000/api/auth/send-otp', { type: verifyType }, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.post(`${API_URL}/api/auth/send-otp`, { type: verifyType }, { headers: { Authorization: `Bearer ${token}` } });
       setAadharStep(2);
     } catch (err) { alert("Failed to send OTP"); }
     finally { setVerifying(false); }
@@ -94,7 +95,7 @@ export default function Profile() {
   const confirmAadharVerify = async () => {
     setVerifying(true);
     try {
-      await axios.post('http://localhost:5000/api/auth/verify-otp', { otp, type: verifyType }, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.post(`${API_URL}/api/auth/verify-otp`, { otp, type: verifyType }, { headers: { Authorization: `Bearer ${token}` } });
       setShowAadharModal(false);
       alert(`${verifyType.charAt(0).toUpperCase() + verifyType.slice(1)} Verified Successfully! ✅`);
       fetchProfile();

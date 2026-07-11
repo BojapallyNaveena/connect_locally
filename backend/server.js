@@ -76,3 +76,5 @@ sequelize.sync({ alter: true }) // Automatically updates database schema
   .catch((err) => {
     console.error('MySQL connection error:', err);
   });
+
+export default app;

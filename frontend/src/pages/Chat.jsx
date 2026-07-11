@@ -28,7 +28,7 @@ export default function Chat() {
     fetchProfileAndConversations(userId);
   }, []);
 
-  const fetchProfileAndConversations = async (autoSelectId) => {
+  async function fetchProfileAndConversations(autoSelectId) {
     try {
       const profileRes = await axios.get(`${API_URL}/api/auth/profile`, {
         headers: { Authorization: `Bearer ${token}` }

@@ -21,7 +21,7 @@ export default function Admin() {
     fetchAdminData();
   }, []);
 
-  const fetchAdminData = async () => {
+  async function fetchAdminData() {
     try {
       const profile = await axios.get(`${API_URL}/api/auth/profile`, { headers: { Authorization: `Bearer ${token}` } });
       if (profile.data.role !== 'admin' && profile.data.role !== 'employer') { // Temporary allowance for demo

@@ -69,7 +69,7 @@ export default function Dashboard() {
     fetchData();
   }, []);
 
-  const fetchData = async () => {
+  async function fetchData() {
     try {
       const [profileRes, appsRes, jobsRes, payRes] = await Promise.all([
         axios.get(`${API_URL}/api/auth/profile`, { headers: { Authorization: `Bearer ${token}` } }),

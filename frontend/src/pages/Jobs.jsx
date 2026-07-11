@@ -48,7 +48,7 @@ export default function Jobs() {
     syncTheme();
   }, []);
 
-  const fetchJobs = async () => {
+  async function fetchJobs() {
     try {
       const res = await axios.get(`${API_URL}/api/jobs`);
       const jobsData = Array.isArray(res.data) ? res.data : [];
